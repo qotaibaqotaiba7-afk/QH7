@@ -1,0 +1,753 @@
+<html lang="ar" dir="rtl" data-theme="dark"><head>
+  <meta charset="UTF-8">
+  <meta name="author" content="QOTAIBA.HIJAZI">
+  <meta name="copyright" content="© 2026 QOTAIBA.HIJAZI">
+  <meta name="build-id" content="BLAST-QH-2026-V1-ULTIMATE-CLEAN">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Blast V2  Ultimate Clean</title>
+<style>
+
+:root[data-theme="dark"]{
+  --bg:#121212; --panel:#1f1f1f; --board:#000; --text:#fff;
+  --muted:#bbb; --primary:#ff6d00; --primary2:#ff9800; --shadow:rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --bg:#f4f4f4; --panel:#fff; --board:#e7e7e7; --text:#111;
+  --muted:#555; --primary:#ff6d00; --primary2:#ff9800; --shadow:rgba(0,0,0,.15);
+}
+
+*{ box-sizing:border-box; }
+html, body { height:100%; }
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  user-select:none; text-align:center;
+}
+
+button{
+  background:var(--primary); color:#fff; border:none; padding:9px 14px;
+  border-radius:10px; cursor:pointer; font-size:15px; font-weight:700; transition:.2s;
+}
+button:hover{ background:var(--primary2); }
+button.primary{ width:100%; margin-top:10px; }
+
+header{
+  margin:16px auto; display:flex; flex-direction:column; gap:10px;
+  align-items:center; max-width:980px; width:95%;
+}
+.title{ font-size:28px; font-weight:800; }
+.toolbar, .authbar{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+
+.hud{
+  max-width:980px; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:10px; margin:10px auto 20px; width:95%;
+}
+.card{
+  background:var(--panel); padding:12px; border-radius:12px;
+  box-shadow:0 8px 20px var(--shadow); text-align:center;
+}
+.label{ font-size:13px; color:var(--muted); }
+.value{ font-size:22px; font-weight:800; }
+
+.bar{margin-top:8px; background:rgba(0,0,0,.1); border-radius:8px; height:10px}
+#goalBar{height:100%; background:#00c853; border-radius:8px; width:0%; transition:width .2s}
+
+#board-wrap{
+  background:var(--panel); padding:15px; border-radius:14px;
+  max-width:980px; margin:auto; box-shadow:0 8px 25px var(--shadow);
+}
+#game{
+  background:var(--board); display:grid;
+  grid-template-columns:repeat(8,60px); grid-template-rows:repeat(8,60px);
+  gap:7px; padding:14px; border-radius:14px; margin:auto;
+}
+.cell{
+  width:60px; height:60px; border-radius:12px; cursor:pointer;
+  transition:transform .12s, opacity .18s;
+  position:relative; box-shadow:inset 0 -6px 0 rgba(0,0,0,.15);
+}
+.cell:hover{ transform:scale(1.06); }
+
+.cell.removing { opacity: 0.15; transition: opacity .15s ease; }
+
+.toast{
+  position:fixed; bottom:25px; inset-inline:0; margin:auto; width:max-content;
+  background:rgba(0,0,0,.75); color:#fff; padding:12px 18px; border-radius:999px;
+  font-weight:bold; opacity:0; transform:translateY(10px); transition:.35s; z-index:1100;
+}
+.toast.show{ opacity:1; transform:translateY(0); }
+
+.overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(3px);
+  z-index:900;
+}
+.modal{
+  position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+  background:var(--panel); color:var(--text); padding:22px; border-radius:14px;
+  width:90%; max-width:480px; text-align:right; box-shadow:0 14px 40px var(--shadow);
+  z-index:1000; animation:fadeIn .25s ease;
+}
+.modal h2{ margin:0 0 8px; text-align:center; }
+.modal hr{ margin:15px 0; border:0; border-top:1px solid var(--muted); }
+
+.leader-list{ 
+  text-align:left; direction:ltr; display:grid; gap:8px; 
+  max-height:50vh; overflow:auto; padding:2px;
+}
+
+.skin-list{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.skin-btn{ background:#444; }
+
+.lb-tab-btn{
+  background:#444; border:none; color:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:800;
+}
+.lb-tab-btn.active{ background:var(--primary); }
+
+.lb-item{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:8px; border-radius:10px; background:rgba(255,255,255,.06);
+}
+.lb-left{ display:flex; align-items:center; gap:10px; }
+.lb-rank{ font-weight:800; min-width:36px; text-align:center; }
+.lb-avatar{
+  width:34px; height:34px; border-radius:50%;
+  background:#777; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;
+}
+.lb-name{ font-weight:800; }
+.lb-score{ opacity:.9; }
+
+@keyframes fadeIn{
+  0%{ opacity:0; transform:translate(-50%, -40%); }
+  100%{ opacity:1; transform:translate(-50%, -50%); }
+}
+
+.modal input[type="text"], .modal input[type="search"]{
+  background:transparent; color:var(--text); border:1px solid #888; border-radius:10px; padding:10px;
+}
+
+@media (max-width:900px){
+  .hud{ grid-template-columns:repeat(3,1fr); }
+}
+@media (max-width:700px){
+  #game{
+    grid-template-columns:repeat(8,42px);
+    grid-template-rows:repeat(8,42px);
+    gap:6px; padding:10px;
+  }
+  .cell{ width:42px; height:42px; border-radius:10px; }
+}
+@media (max-width:520px){
+  .hud{ grid-template-columns:repeat(2,1fr); }
+}
+
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;800&amp;display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="title">🎮 Color Blast Q.H</div>
+
+    <div class="toolbar">
+      <button id="themeBtn">Mode: Night 🌙</button>
+      <button id="restartBtn">Replay 🔄</button>
+      <button id="dailyBtn">Daily Challenge ⭐</button>
+      <button id="howBtn">❓ Instructions / التعليمات</button>
+      <button id="leaderBtn">Leaderboard 🏆</button>
+      <button id="skinBtn">Skins 🎨</button>
+    </div>
+  </header>
+
+  <div class="hud">
+    <div class="card">
+      <div class="label">Stage</div>
+      <div id="levelVal" class="value">1</div>
+    </div>
+    <div class="card">
+      <div class="label">Points</div>
+      <div id="scoreVal" class="value">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Best result</div>
+      <div id="bestVal" class="value">0</div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="card">
+      <div class="label">Stage goal</div>
+      <div id="goalVal" class="value">120</div>
+      <div class="bar"><div id="goalBar" style="width: 0%;"></div></div>
+    </div>
+    <div class="card">
+      <div class="label">Time</div>
+      <div id="timeVal" class="value">60</div>
+    </div>
+    <div class="card">
+      <div class="label">Mode</div>
+      <div id="modeVal" class="value">Normal</div>
+    </div>
+  </div>
+
+  <div id="board-wrap">
+    <div id="game" aria-label="game board" role="grid"></div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">⏳ Time's up! Stage restarted.</div>
+
+  <div id="overlay-bg" class="overlay" style="display:none;"></div>
+
+  <div id="howBox" class="modal" style="display:none;">
+    <h2>📘 Instructions / التعليمات</h2>
+    <h3>English:</h3>
+    <p>
+      • Tap or drag colors to select or swap blocks.<br>
+      • If 3 or more matching colors touch, they will be removed.<br>
+      • Reach the goal to advance to the next stage.<br>
+    </p>
+    <hr>
+    <h3>العربية:</h3>
+    <p dir="rtl" style="text-align:right;">
+      • اضغط أو اسحب لتحديد أو تبديل القطع.<br>
+      • عند تجمّع 3 قطع متشابهة أو أكثر سيتم حذفها.<br>
+      • عند الوصول للهدف تنتقل للمرحلة التالية.<br>
+    </p>
+    <button class="primary close-how">✖ Close / إغلاق</button>
+  </div>
+
+  <div id="leaderBox" class="modal" style="display:none;">
+    <h2>🏆 Leaderboard</h2>
+
+    <div style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;">
+      <div class="label" style="margin-bottom:6px;">Save your score / احفظ نتيجتك:</div>
+      <div style="display:flex; gap:8px;">
+        <input id="playerNameInput" type="text" placeholder="Your name / اسمك" style="flex:1;">
+        <button id="saveScoreBtn">Save 💾</button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:center; margin:8px 0;">
+      <input id="leaderSearch" type="text" placeholder="Search name / ابحث بالاسم" style="width:70%;">
+      <button id="leaderSearchBtn">🔎</button>
+    </div>
+
+    <div id="leaderData" class="leader-list"></div>
+
+    <button class="primary close-leader" style="margin-top:12px;">Close / إغلاق</button>
+  </div>
+
+  <div id="skinBox" class="modal" style="display:none;">
+    <h2>🎨 Choose Skin</h2>
+    <div class="skin-list">
+      <button class="skin-btn" data-skin="classic">Classic</button>
+      <button class="skin-btn" data-skin="neon">Neon</button>
+      <button class="skin-btn" data-skin="pastel">Pastel</button>
+    </div>
+    <button class="primary close-skin">Close / إغلاق</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+      firebase.initializeApp(firebaseConfig);
+      window.db = firebase.firestore();
+    }
+  </script>
+
+  <script>
+const size = 8;
+const baseSkins = {
+  classic: ["#f44336","#2196f3","#ffeb3b","#4caf50","#9c27b0","#ff9800","#00bcd4"],
+  neon:    ["#ff005e","#00eaff","#39ff14","#fffb00","#ff8c00","#ff00ff","#00ff90"],
+  pastel:  ["#ff9aa2","#ffb7b2","#ffdac1","#e2f0cb","#b5ead7","#c7ceea"]
+};
+let baseColors = [...baseSkins.classic];
+
+const levelCfg = [
+  { goal:40, colors:5 },
+  { goal:70, colors:6 },
+  { goal:100, colors:6 },
+  { goal:130, colors:7 },
+  { goal:165, colors:7 }
+];
+
+let grid, score, best, levelIndex, colors;
+let dragStart = null, dragEnd = null, busy = false;
+let inDaily = false;
+let timer = 60, timerInterval = null;
+
+const game = document.getElementById("game");
+const scoreVal = document.getElementById("scoreVal");
+const bestVal = document.getElementById("bestVal");
+const levelVal = document.getElementById("levelVal");
+const goalVal = document.getElementById("goalVal");
+const goalBar = document.getElementById("goalBar");
+const themeBtn = document.getElementById("themeBtn");
+const restartBtn = document.getElementById("restartBtn");
+const toastEl = document.getElementById("toast");
+const dailyBtn = document.getElementById("dailyBtn");
+const timeVal = document.getElementById("timeVal");
+const modeVal = document.getElementById("modeVal");
+
+const howBtn = document.getElementById("howBtn");
+const howBox = document.getElementById("howBox");
+const overlay = document.getElementById("overlay-bg");
+
+const leaderBtn = document.getElementById("leaderBtn");
+const leaderBox = document.getElementById("leaderBox");
+const leaderData = document.getElementById("leaderData");
+const leaderSearch = document.getElementById("leaderSearch");
+const leaderSearchBtn = document.getElementById("leaderSearchBtn");
+const playerNameInput = document.getElementById("playerNameInput");
+const saveScoreBtn = document.getElementById("saveScoreBtn");
+
+const skinBtn = document.getElementById("skinBtn");
+const skinBox = document.getElementById("skinBox");
+
+const db = window.db;
+
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function within(r,c){ return r>=0 && r<size && c>=0 && c<size; }
+function currentGoal(){ return levelCfg[Math.min(levelIndex-1, levelCfg.length-1)].goal; }
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  setTimeout(()=> toastEl.classList.remove("show"), 1600);
+}
+
+function setTheme(mode){
+  document.documentElement.setAttribute("data-theme", mode);
+  themeBtn.textContent = mode==="dark" ? "Mode: Night 🌙" : "Mode: Day ☀️";
+  localStorage.setItem("theme", mode);
+}
+themeBtn.onclick = () =>{
+  const cur = document.documentElement.getAttribute("data-theme");
+  setTheme(cur==="dark" ? "light" : "dark");
+};
+
+function buildGrid(){
+  grid = Array.from({length:size}, ()=> Array(size).fill(null));
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      grid[r][c] = rand(colors);
+    }
+  }
+
+  game.innerHTML = "";
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      createCell(r,c,grid[r][c]);
+    }
+  }
+}
+
+function createCell(r,c,color){
+  const d = document.createElement("div");
+  d.className = "cell";
+  d.dataset.row = r;
+  d.dataset.col = c;
+  d.style.background = color;
+
+  d.addEventListener("click", ()=> handleCellTap(r,c));
+  d.addEventListener("touchstart", onTouchStart, {passive:true});
+  d.addEventListener("touchmove", onTouchMove, {passive:false});
+  d.addEventListener("touchend", onTouchEnd, {passive:true});
+  d.addEventListener("mousedown", onMouseDown);
+  d.addEventListener("mouseup", onMouseUp);
+
+  game.appendChild(d);
+}
+
+function handleCellTap(r,c){
+  if(busy) return;
+  const color = grid[r][c];
+  const group = flood(r,c,color);
+
+  if(group.length>=3){
+    markCellsForRemoval(group);
+    removeCells(group);
+    score += group.length;
+    updateScore();
+    setTimeout(dropCells, 200);
+  }
+}
+
+function markCellsForRemoval(keys){
+  keys.forEach(k=>{
+    const [r,c]=k.split(",").map(Number);
+    const cell = queryCell(r,c);
+    if(cell){
+      cell.classList.add("removing");
+      setTimeout(()=> cell && cell.classList.remove("removing"), 250);
+    }
+  });
+}
+
+function flood(r,c,color, visitedSet){
+  if(!visitedSet) visitedSet = new Set();
+  const key = `${r},${c}`;
+  if(visitedSet.has(key)) return Array.from(visitedSet);
+
+  visitedSet.add(key);
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for(const [dr,dc] of dirs){
+    const nr = r+dr, nc = c+dc;
+    if(within(nr,nc) && grid[nr][nc]===color){
+      flood(nr,nc,color,visitedSet);
+    }
+  }
+  return Array.from(visitedSet);
+}
+
+function removeCells(cells){
+  busy = true;
+  cells.forEach(key=>{
+    const [r,c] = key.split(",").map(Number);
+    grid[r][c] = null;
+  });
+}
+
+function dropCells(){
+  for(let c=0;c<size;c++){
+    let empty = 0;
+    for(let r=size-1;r>=0;r--){
+      if(grid[r][c]===null){
+        empty++;
+      } else if(empty>0){
+        grid[r+empty][c]=grid[r][c];
+        grid[r][c]=null;
+      }
+    }
+    for(let r=0;r<empty;r++){
+      grid[r][c] = rand(colors);
+    }
+  }
+  updateUI();
+  busy = false;
+
+  if(score >= currentGoal()){
+    nextLevel();
+  }
+}
+
+function updateUI(){
+  document.querySelectorAll(".cell").forEach(cell=>{
+    const r=+cell.dataset.row, c=+cell.dataset.col;
+    cell.style.background = grid[r][c];
+    cell.style.opacity="1";
+    cell.classList.remove("removing");
+  });
+}
+
+function queryCell(r,c){
+  return game.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+}
+
+function updateScore(){
+  scoreVal.textContent = score;
+  if(score > best){
+    best = score;
+    bestVal.textContent = best;
+    localStorage.setItem("bestScore", best);
+  }
+  goalBar.style.width = Math.min(100,(score/currentGoal())*100) + "%";
+}
+
+function onTouchStart(e){
+  const cell = e.target.closest(".cell");
+  if(!cell) return;
+  dragStart = { r:+cell.dataset.row, c:+cell.dataset.col };
+}
+function onTouchMove(e){
+  e.preventDefault();
+  const t = e.touches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  if(el && el.classList && el.classList.contains("cell")){
+    dragEnd = { r:+el.dataset.row, c:+el.dataset.col };
+  }
+}
+function onTouchEnd(){
+  if(dragStart && dragEnd) doSwap(dragStart, dragEnd);
+  dragStart = dragEnd = null;
+}
+
+function onMouseDown(e){
+  const cell = e.target.closest(".cell");
+  if(!cell) return;
+  dragStart = { r:+cell.dataset.row, c:+cell.dataset.col };
+}
+function onMouseUp(e){
+  const el = document.elementFromPoint(e.clientX,e.clientY);
+  if(el && el.classList.contains("cell")){
+    dragEnd = { r:+el.dataset.row, c:+el.dataset.col };
+    if(dragStart && dragEnd) doSwap(dragStart, dragEnd);
+  }
+  dragStart = dragEnd = null;
+}
+
+function doSwap(a,b){
+  if(busy) return;
+  const dr=Math.abs(a.r-b.r), dc=Math.abs(a.c-b.c);
+  if(dr+dc!==1) return;
+
+  let tmp = grid[a.r][a.c];
+  grid[a.r][a.c] = grid[b.r][b.c];
+  grid[b.r][b.c] = tmp;
+  updateUI();
+
+  const gA = flood(a.r,a.c,grid[a.r][a.c]);
+  const gB = flood(b.r,b.c,grid[b.r][b.c]);
+
+  if(gA.length>=3 || gB.length>=3){
+    if(gA.length>=3) handleCellTap(a.r,a.c);
+    if(gB.length>=3) handleCellTap(b.r,b.c);
+  } else {
+    tmp = grid[a.r][a.c];
+    grid[a.r][a.c] = grid[b.r][b.c];
+    grid[b.r][b.c] = tmp;
+    updateUI();
+  }
+}
+
+function nextLevel(){
+  toast(`🎉 Ascension to stage ${levelIndex+1}`);
+  levelIndex++;
+
+  const cfg = levelCfg[levelIndex-1] || {
+    goal: Math.round((inDaily ? 120 : currentGoal()) * 1.3),
+    colors: Math.min(baseColors.length, (colors.length+1))
+  };
+  if(!levelCfg[levelIndex-1]) levelCfg.push(cfg);
+
+  colors = baseColors.slice(0, cfg.colors);
+  levelVal.textContent = levelIndex;
+  goalVal.textContent = cfg.goal;
+  score = 0;
+  goalBar.style.width = "0%";
+
+  buildGrid();
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timer = inDaily ? 75 : 60;
+  timeVal.textContent = timer;
+
+  timerInterval = setInterval(()=>{
+    timer--;
+    timeVal.textContent = timer;
+    if(timer<=0){
+      clearInterval(timerInterval);
+      toast("⏳ Time's up! Stage restarted.");
+      restartStage();
+    }
+  }, 1000);
+}
+
+function restartStage(){
+  score = 0;
+  goalBar.style.width = "0%";
+  buildGrid();
+  startTimer();
+}
+
+dailyBtn.onclick = () =>{
+  toast("🔥 Daily Challenge started!");
+  inDaily = true;
+  modeVal.textContent = "Daily";
+  levelIndex = 1;
+  score = 0;
+  colors = baseColors.slice(0, 6);
+  levelVal.textContent = 1;
+  goalVal.textContent = 120;
+  goalBar.style.width = "0%";
+  buildGrid();
+  startTimer();
+};
+
+skinBtn.onclick = ()=> openModal(skinBox);
+document.querySelectorAll(".skin-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const skin = btn.dataset.skin;
+    baseColors = [...baseSkins[skin]];
+    colors = baseColors.slice(0, Math.min(colors.length, baseColors.length));
+    toast(`🎨 Skin changed to ${skin}`);
+    buildGrid();
+    closeModal(skinBox);
+  });
+});
+
+howBtn.onclick = ()=> openModal(howBox);
+document.querySelector(".close-how").onclick = ()=> closeModal(howBox);
+document.querySelector(".close-leader").onclick = ()=> closeModal(leaderBox);
+document.querySelector(".close-skin").onclick = ()=> closeModal(skinBox);
+
+overlay.addEventListener("click", ()=>{
+  [howBox, leaderBox, skinBox].forEach(box=> closeModal(box));
+});
+
+function openModal(el){
+  overlay.style.display="block";
+  el.style.display = "block";
+}
+function closeModal(el){
+  el.style.display = "none";
+  overlay.style.display="none";
+}
+
+let currentSearch = "";
+
+playerNameInput.addEventListener("input", ()=>{
+  localStorage.setItem("savedPlayerName", playerNameInput.value.trim());
+});
+
+leaderBtn.onclick = ()=>{
+  currentSearch = "";
+  if(leaderSearch) leaderSearch.value = "";
+  fetchAndRenderLeaderboard();
+  openModal(leaderBox);
+};
+
+if(leaderSearchBtn){
+  leaderSearchBtn.onclick = ()=>{
+    currentSearch = (leaderSearch.value || "").trim().toLowerCase();
+    fetchAndRenderLeaderboard();
+  };
+}
+
+function getLocalScores(){
+  return JSON.parse(localStorage.getItem("localLeaderboard") || "[]");
+}
+
+function saveLocalScore(item){
+  const list = getLocalScores();
+  list.push(item);
+  list.sort((a,b)=> b.score - a.score);
+  localStorage.setItem("localLeaderboard", JSON.stringify(list.slice(0, 50)));
+}
+
+saveScoreBtn.onclick = async ()=>{
+  const name = (playerNameInput.value || "").trim();
+  if(!name){
+    toast("⚠️ Please enter your name");
+    return;
+  }
+
+  localStorage.setItem("savedPlayerName", name);
+
+  const newEntry = {
+    name: name,
+    score: score,
+    level: levelIndex,
+    ts: Date.now()
+  };
+
+  saveLocalScore(newEntry);
+
+  if(db){
+    try{
+      await db.collection("leaderboard").add({
+        ...newEntry,
+        daily: !!inDaily,
+        ts: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e){
+      console.error(e);
+    }
+  }
+
+  toast("✔ Score saved to Leaderboard!");
+  fetchAndRenderLeaderboard();
+};
+
+function renderLbItem({rank, name, score, level}){
+  const firstLetter = (name || "P")[0].toUpperCase();
+  return `
+    <div class="lb-item">
+      <div class="lb-left">
+        <div class="lb-rank">#${rank}</div>
+        <div class="lb-avatar">${firstLetter}</div>
+        <div class="lb-name">${(name || "Player").toString().slice(0, 24)}</div>
+      </div>
+      <div class="lb-score">${score} pts (L${level || 1})</div>
+    </div>
+  `;
+}
+
+async function fetchAndRenderLeaderboard(){
+  leaderData.innerHTML = "Loading...";
+  let arr = [];
+
+  if (db){
+    try{
+      const snap = await db.collection("leaderboard").orderBy("score","desc").limit(50).get();
+      snap.forEach(doc=>{
+        const d = doc.data();
+        arr.push({
+          name: d.name || "Player",
+          score: d.score || 0,
+          level: d.level || 1
+        });
+      });
+    }catch(err){
+      console.error(err);
+      arr = getLocalScores();
+    }
+  } else {
+    arr = getLocalScores();
+  }
+
+  if(currentSearch){
+    arr = arr.filter(x => (x.name||"").toLowerCase().includes(currentSearch));
+  }
+
+  let html = "";
+  let rank = 1;
+  for(const it of arr){
+    html += renderLbItem({
+      rank, name: it.name, score: it.score, level: it.level
+    });
+    rank++;
+  }
+  leaderData.innerHTML = html || "<em>No scores found.</em>";
+}
+
+function startGame(){
+  best = Number(localStorage.getItem("bestScore")||0);
+  bestVal.textContent = best;
+
+  const savedName = localStorage.getItem("savedPlayerName") || "QOTAIBA.HIJAZI";
+  playerNameInput.value = savedName;
+
+  const t = localStorage.getItem("theme") || "dark";
+  setTheme(t);
+
+  score = 0; levelIndex = 1; inDaily = false; modeVal.textContent = "Normal";
+  colors = baseColors.slice(0, levelCfg[0].colors);
+  levelVal.textContent = 1;
+  goalVal.textContent = levelCfg[0].goal;
+  goalBar.style.width = "0%";
+
+  buildGrid();
+  startTimer();
+}
+
+restartBtn.onclick = startGame;
+startGame();
+  </script>
+</body></html>
